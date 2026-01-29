@@ -43,25 +43,12 @@
             z-index: 9999; 
             cursor: pointer;
             -webkit-tap-highlight-color: transparent;
+            user-select: none;
         }
 
-        #date-display { 
-            font-size: 2.8vw; 
-            color: #5d4037; 
-            margin-bottom: 2vw;
-        }
-
-        #display { 
-            font-size: 10vw; 
-            color: #3e2723; 
-            line-height: 1;
-            margin-bottom: 2vw;
-        }
-        
-        #mode-label { 
-            font-size: 2.5vw; 
-            font-weight: bold;
-        }
+        #date-display { font-size: 2.8vw; color: #5d4037; margin-bottom: 2vw; }
+        #display { font-size: 10vw; color: #3e2723; line-height: 1; margin-bottom: 2vw; }
+        #mode-label { font-size: 2.5vw; font-weight: bold; }
 
         @media (min-width: 500px) {
             #date-display { font-size: 0.85rem; }
@@ -72,7 +59,7 @@
 </head>
 <body>
     <div class="container">
-        <div id="screen-area" onclick="toggleTimer()" ondblclick="resetTimer()">
+        <div id="screen-area">
             <div id="date-display">2026.01.29 THU</div>
             <div id="display">25:00</div>
             <div id="mode-label">READY</div>
@@ -85,10 +72,13 @@
         let timeLeft = 25 * 60;
         let isRunning = false;
 
-        // 🍄 마리오 점프 소리 (새로운 소스 + 캐시 방지 v=1 추가)
-        const jumpSound = new Audio('https://files.catbox.moe/978vun.mp3?v=1');
-        // 💰 마리오 코인 소리
-        const finishSound = new Audio('https://files.catbox.moe/8yox0v.mp3?v=1');
+        // 🍄 소리 파일 설정 (경로 확인 완료)
+        const jumpSound = new Audio('https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Super+Mario+Bros+Jump&filename=mt/mtYm02MTEzMzk2MTIxMTM4_v_2f2fK_2bB_2f7Bw.mp3');
+        const coinSound = new Audio('https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Super+Mario+Bros+Coin&filename=mt/mtYm02MTEzMzk2MTIxMTM4_1XnS_2bgU37lY.mp3');
+
+        // 미리 소리를 로드합니다.
+        jumpSound.load();
+        coinSound.load();
 
         function updateDate() {
             const dateEl = document.getElementById('date-display');
@@ -123,9 +113,15 @@
                 timer = null; 
                 isRunning = false; 
             } else {
-                // 🍄 시작할 때 소리 재생 시도
+                // 🍄 클릭 즉시 소리 재생
                 jumpSound.currentTime = 0;
-                jumpSound.play().catch(e => console.log("Click interaction required"));
+                let playPromise = jumpSound.play();
+                
+                if (playPromise !== undefined) {
+                    playPromise.catch(error => {
+                        console.log("재생 실패: ", error);
+                    });
+                }
                 
                 isRunning = true;
                 timer = setInterval(() => {
@@ -133,19 +129,16 @@
                         timeLeft--; 
                         updateDisplay(); 
                     } else { 
-                        // 🏁 종료 시 소리 재생
-                        finishSound.currentTime = 0;
-                        finishSound.play(); 
+                        coinSound.play(); 
                         clearInterval(timer); 
                         isRunning = false; 
-                        
                         setTimeout(() => {
                             if (isFocusMode) {
-                                alert("집중 완료! 코인을 획득했습니다! 🪙");
+                                alert("집중 완료! 코인 획득! 🪙");
                                 isFocusMode = false;
                                 timeLeft = 5 * 60; 
                             } else {
-                                alert("휴식 끝! 다시 모험을 떠나볼까요? 🍄");
+                                alert("휴식 끝! 다시 출발! 🍄");
                                 isFocusMode = true;
                                 timeLeft = 25 * 60; 
                             }
@@ -157,8 +150,14 @@
             updateDisplay();
         }
 
-        function resetTimer(e) { 
-            if(e) e.stopPropagation();
+        const screenArea = document.getElementById('screen-area');
+        
+        // 클릭 이벤트 리스너를 더 확실하게 연결
+        screenArea.addEventListener('click', function() {
+            toggleTimer();
+        });
+
+        function resetTimer() { 
             clearInterval(timer); 
             timer = null; 
             isRunning = false; 
@@ -166,6 +165,12 @@
             timeLeft = 25 * 60; 
             updateDisplay(); 
         }
+
+        // 더블 클릭 리스너
+        screenArea.addEventListener('dblclick', function(e) {
+            e.stopPropagation();
+            resetTimer();
+        });
 
         window.onload = function() { 
             updateDate(); 
