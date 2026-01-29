@@ -42,6 +42,8 @@
             text-align: center;
             z-index: 9999; 
             cursor: pointer;
+            /* 클릭 시 파란 박스 생기는 것 방지 */
+            -webkit-tap-highlight-color: transparent;
         }
 
         #date-display { 
@@ -62,7 +64,6 @@
             font-weight: bold;
         }
 
-        /* 데스크탑 환경 글자 크기 고정 */
         @media (min-width: 500px) {
             #date-display { font-size: 0.85rem; }
             #display { font-size: 3.2rem; }
@@ -72,7 +73,7 @@
 </head>
 <body>
     <div class="container">
-        <div id="screen-area" onclick="handleSingleClick()" ondblclick="resetTimer()">
+        <div id="screen-area" onclick="toggleTimer()" ondblclick="resetTimer()">
             <div id="date-display">2026.01.29 THU</div>
             <div id="display">25:00</div>
             <div id="mode-label">READY</div>
@@ -84,9 +85,8 @@
         let isFocusMode = true;
         let timeLeft = 25 * 60;
         let isRunning = false;
-        let clickTimer = null;
 
-        // 👾 다마고치 레트로 효과음 (삐비빅!)
+        // 👾 다마고치 레트로 효과음
         const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2864/2864-preview.mp3');
 
         function updateDate() {
@@ -104,7 +104,9 @@
             const modeEl = document.getElementById('mode-label');
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
+            
             if (displayEl) displayEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
             if (modeEl) {
                 if (!isRunning && timeLeft === 25*60) {
                     modeEl.innerText = "- READY -";
@@ -116,9 +118,59 @@
             }
         }
 
-        function handleSingleClick() {
-            if (clickTimer) {
-                clearTimeout(clickTimer);
-                clickTimer = null;
-                resetTimer(); // 더블 클릭 시 리셋
+        function toggleTimer() {
+            if (isRunning) { 
+                // 일시정지
+                clearInterval(timer); 
+                timer = null; 
+                isRunning = false; 
             } else {
+                // 시작 소리 재생
+                alertSound.currentTime = 0;
+                alertSound.play().catch(e => console.log("Click required for sound")); 
+                
+                isRunning = true;
+                timer = setInterval(() => {
+                    if (timeLeft > 0) { 
+                        timeLeft--; 
+                        updateDisplay(); 
+                    } else { 
+                        // 종료 소리 재생
+                        alertSound.play(); 
+                        clearInterval(timer); 
+                        isRunning = false; 
+                        
+                        if (isFocusMode) {
+                            alert("집중 완료! 잠깐 쉴까요? ☕");
+                            isFocusMode = false;
+                            timeLeft = 5 * 60; 
+                        } else {
+                            alert("휴식 끝! 다시 시작해봐요! 🔥");
+                            isFocusMode = true;
+                            timeLeft = 25 * 60; 
+                        }
+                        updateDisplay(); 
+                    }
+                }, 1000);
+            }
+            updateDisplay();
+        }
+
+        function resetTimer(e) { 
+            if(e) e.stopPropagation(); // 클릭 이벤트 전파 방지
+            clearInterval(timer); 
+            timer = null; 
+            isRunning = false; 
+            isFocusMode = true; 
+            timeLeft = 25 * 60; 
+            updateDisplay(); 
+        }
+
+        window.onload = function() { 
+            updateDate(); 
+            updateDisplay(); 
+            setInterval(updateDate, 60000); 
+        };
+    </script>
+</body>
+</html>
