@@ -72,11 +72,11 @@
         let timeLeft = 25 * 60;
         let isRunning = false;
 
-        // 🍄 소리 파일 설정 (경로 확인 완료)
-        const jumpSound = new Audio('https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Super+Mario+Bros+Jump&filename=mt/mtYm02MTEzMzk2MTIxMTM4_v_2f2fK_2bB_2f7Bw.mp3');
-        const coinSound = new Audio('https://www.soundboard.com/handler/DownLoadTrack.ashx?cliptitle=Super+Mario+Bros+Coin&filename=mt/mtYm02MTEzMzk2MTIxMTM4_1XnS_2bgU37lY.mp3');
+        // 🍄 소리 파일 (v=2를 붙여 캐시 초기화)
+        const jumpSound = new Audio('https://www.myinstants.com/media/sounds/super-mario-jump.mp3?v=2');
+        const coinSound = new Audio('https://www.myinstants.com/media/sounds/mario-coin.mp3?v=2');
 
-        // 미리 소리를 로드합니다.
+        // 소리 파일 미리 로드
         jumpSound.load();
         coinSound.load();
 
@@ -109,19 +109,14 @@
 
         function toggleTimer() {
             if (isRunning) { 
+                // 일시정지
                 clearInterval(timer); 
                 timer = null; 
                 isRunning = false; 
             } else {
-                // 🍄 클릭 즉시 소리 재생
+                // 🍄 시작할 때 소리 재생 (즉시 실행)
                 jumpSound.currentTime = 0;
-                let playPromise = jumpSound.play();
-                
-                if (playPromise !== undefined) {
-                    playPromise.catch(error => {
-                        console.log("재생 실패: ", error);
-                    });
-                }
+                jumpSound.play().catch(e => console.log("User click required"));
                 
                 isRunning = true;
                 timer = setInterval(() => {
@@ -129,21 +124,26 @@
                         timeLeft--; 
                         updateDisplay(); 
                     } else { 
-                        coinSound.play(); 
+                        // 💰 종료될 때 코인 소리 재생
+                        coinSound.currentTime = 0;
+                        coinSound.play();
+                        
                         clearInterval(timer); 
                         isRunning = false; 
+                        
+                        // 소리가 묻히지 않게 아주 잠깐 뒤에 알림창 띄우기
                         setTimeout(() => {
                             if (isFocusMode) {
-                                alert("집중 완료! 코인 획득! 🪙");
+                                alert("집중 완료! 코인을 획득했습니다! 🪙");
                                 isFocusMode = false;
                                 timeLeft = 5 * 60; 
                             } else {
-                                alert("휴식 끝! 다시 출발! 🍄");
+                                alert("휴식 끝! 다시 모험을 떠나볼까요? 🍄");
                                 isFocusMode = true;
                                 timeLeft = 25 * 60; 
                             }
                             updateDisplay();
-                        }, 100);
+                        }, 200);
                     }
                 }, 1000);
             }
@@ -152,24 +152,18 @@
 
         const screenArea = document.getElementById('screen-area');
         
-        // 클릭 이벤트 리스너를 더 확실하게 연결
-        screenArea.addEventListener('click', function() {
-            toggleTimer();
-        });
+        // 클릭 시 타이머 토글 및 시작 소리
+        screenArea.addEventListener('click', toggleTimer);
 
-        function resetTimer() { 
+        // 더블 클릭 시 리셋
+        screenArea.addEventListener('dblclick', function(e) {
+            e.stopPropagation();
             clearInterval(timer); 
             timer = null; 
             isRunning = false; 
             isFocusMode = true; 
             timeLeft = 25 * 60; 
             updateDisplay(); 
-        }
-
-        // 더블 클릭 리스너
-        screenArea.addEventListener('dblclick', function(e) {
-            e.stopPropagation();
-            resetTimer();
         });
 
         window.onload = function() { 
