@@ -20,9 +20,8 @@
 
         .container {
             position: relative;
-            /* ⭐️ 너비를 100%로 설정하고 aspect-ratio로 비율을 유지합니다 */
             width: 100vw; 
-            max-width: 500px; /* 최대 크기 제한 */
+            max-width: 500px;
             aspect-ratio: 1 / 1; 
             background: url('https://i.imgur.com/XnJujO1.png') no-repeat center/contain;
         }
@@ -32,7 +31,6 @@
             top: 46.5%; 
             left: 49.6%;
             transform: translate(-50%, -50%);
-            /* ⭐️ 영역 크기도 vw(화면 너비 비례) 단위로 변경 */
             width: 42vw; 
             max-width: 210px;
             height: 32vw;
@@ -46,17 +44,14 @@
             cursor: pointer;
         }
 
-        /* ⭐️ 글자 크기를 vw 단위로 설정하여 임베드 크기에 따라 변하게 합니다 */
         #date-display { 
             font-size: 2.8vw; 
-            max-size: 0.85rem;
             color: #5d4037; 
             margin-bottom: 2vw;
         }
 
         #display { 
             font-size: 10vw; 
-            max-size: 3.2rem;
             color: #3e2723; 
             line-height: 1;
             margin-bottom: 2vw;
@@ -64,11 +59,9 @@
         
         #mode-label { 
             font-size: 2.5vw; 
-            max-size: 0.75rem;
             font-weight: bold;
         }
 
-        /* 노션 데스크탑 환경을 위한 미세 조정 */
         @media (min-width: 500px) {
             #date-display { font-size: 0.85rem; }
             #display { font-size: 3.2rem; }
@@ -86,12 +79,14 @@
     </div>
 
     <script>
-        // 스크립트 부분은 동일하게 유지 (날짜 및 타이머 로직)
         let timer = null;
         let isFocusMode = true;
         let timeLeft = 25 * 60;
         let isRunning = false;
         let clickTimer = null;
+
+        // 🔔 알림음 설정 (맑은 딩동 소리)
+        const alertSound = new Audio('https://assets.mixkit.co/active_storage/sfx/2869/2869-preview.mp3');
 
         function updateDate() {
             const dateEl = document.getElementById('date-display');
@@ -121,20 +116,52 @@
         }
 
         function toggleTimer() {
-            if (isRunning) { clearInterval(timer); timer = null; isRunning = false; }
-            else {
+            if (isRunning) { 
+                clearInterval(timer); 
+                timer = null; 
+                isRunning = false; 
+            } else {
                 isRunning = true;
                 timer = setInterval(() => {
-                    if (timeLeft > 0) { timeLeft--; updateDisplay(); }
-                    else { clearInterval(timer); isRunning = false; isFocusMode = !isFocusMode; timeLeft = isFocusMode ? 25 * 60 : 10 * 60; updateDisplay(); }
+                    if (timeLeft > 0) { 
+                        timeLeft--; 
+                        updateDisplay(); 
+                    } else { 
+                        // 🔔 시간이 다 되었을 때 실행
+                        alertSound.play(); 
+                        clearInterval(timer); 
+                        isRunning = false; 
+                        
+                        if (isFocusMode) {
+                            alert("집중 완료! 5분간 휴식할까요? ☕");
+                            isFocusMode = false;
+                            timeLeft = 10 * 60; // 휴식 10분 설정
+                        } else {
+                            alert("휴식 끝! 다시 집중해볼까요? 🔥");
+                            isFocusMode = true;
+                            timeLeft = 25 * 60; // 집중 25분 설정
+                        }
+                        updateDisplay(); 
+                    }
                 }, 1000);
             }
             updateDisplay();
         }
 
-        function resetTimer() { clearInterval(timer); timer = null; isRunning = false; isFocusMode = true; timeLeft = 25 * 60; updateDisplay(); }
+        function resetTimer() { 
+            clearInterval(timer); 
+            timer = null; 
+            isRunning = false; 
+            isFocusMode = true; 
+            timeLeft = 25 * 60; 
+            updateDisplay(); 
+        }
 
-        window.onload = function() { updateDate(); updateDisplay(); setInterval(updateDate, 60000); };
+        window.onload = function() { 
+            updateDate(); 
+            updateDisplay(); 
+            setInterval(updateDate, 60000); 
+        };
     </script>
 </body>
 </html>
