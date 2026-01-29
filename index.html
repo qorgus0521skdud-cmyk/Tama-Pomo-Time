@@ -2,7 +2,8 @@
 <html lang="ko">
 <head>
     <meta charset="UTF-8">
-    <title>Tamagotchi Pixel Timer</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Tamagotchi Pomo Timer</title>
     <style>
         @font-face {
             font-family: 'DungGeunMo';
@@ -21,28 +22,49 @@
             background: url('https://i.imgur.com/G129ndd.png') no-repeat center/contain;
         }
 
+        /* ⭐️ 중앙 정렬을 위한 핵심 수정 섹션 */
         #screen-area {
             position: absolute;
-            top: 46%; left: 50%; 
+            /* 이미지의 구멍 위치에 따라 top 수치를 1~2%씩 조절해보세요 */
+            top: 46.5%; left: 50%; 
             transform: translate(-50%, -50%);
-            width: 220px; height: 160px; 
-            display: flex; justify-content: center; align-items: center;
+            width: 200px; height: 140px; 
+            display: flex; 
             flex-direction: column;
+            justify-content: center; /* 수직 중앙 정렬 */
+            align-items: center;     /* 수평 중앙 정렬 */
             user-select: none;
             z-index: 9999; 
             cursor: pointer;
-            pointer-events: auto;
         }
 
-        #date-display { font-size: 0.9rem; color: #444; margin-bottom: 8px; }
-        #display { font-size: 3.2rem; color: #111; margin-bottom: 5px; }
-        #mode-label { font-size: 0.8rem; font-weight: bold; }
+        /* 요소들 사이의 간격을 마진으로 정밀 조절 */
+        #date-display { 
+            font-size: 0.85rem; 
+            color: #5d4037; 
+            margin: 0 0 12px 0; /* 아래쪽 간격만 12px */
+            letter-spacing: 0.5px;
+        }
+
+        #display { 
+            font-size: 3.2rem; 
+            color: #3e2723; 
+            line-height: 1; /* 글자 위아래 불필요한 공백 제거 */
+            margin: 0 0 12px 0; /* 아래쪽 간격만 12px */
+        }
+        
+        #mode-label { 
+            font-size: 0.75rem; 
+            font-weight: bold;
+            margin: 0;
+            letter-spacing: 1px;
+        }
     </style>
 </head>
 <body>
     <div class="container">
         <div id="screen-area" onclick="handleSingleClick()" ondblclick="resetTimer()">
-            <div id="date-display">LOADING...</div>
+            <div id="date-display">2026.01.29 THU</div>
             <div id="display">25:00</div>
             <div id="mode-label">READY</div>
         </div>
@@ -57,7 +79,6 @@
 
         function updateDate() {
             const dateEl = document.getElementById('date-display');
-            if (!dateEl) return;
             const now = new Date();
             const year = now.getFullYear();
             const month = String(now.getMonth() + 1).padStart(2, '0');
@@ -69,14 +90,11 @@
         function updateDisplay() {
             const displayEl = document.getElementById('display');
             const modeEl = document.getElementById('mode-label');
-            if (!displayEl || !modeEl) return;
-
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
-            displayEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             
+            displayEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
             modeEl.innerText = isFocusMode ? "- FOCUS MODE -" : "- REST MODE -";
-            // ⭐️ FOCUS 모드일 때 색상을 따뜻한 갈색(#795548)으로 설정했습니다.
             modeEl.style.color = isFocusMode ? "#795548" : "#388e3c"; 
         }
 
