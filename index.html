@@ -1,0 +1,134 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <title>Tamagotchi Pixel Timer</title>
+    <style>
+        @font-face {
+            font-family: 'DungGeunMo';
+            src: url('https://cdn.jsdelivr.net/gh/projectnoonnu/noonfonts_six@1.2/DungGeunMo.woff') format('woff');
+        }
+
+        body { 
+            margin: 0; display: flex; justify-content: center; align-items: center; 
+            height: 100vh; background: transparent; overflow: hidden;
+            font-family: 'DungGeunMo', monospace;
+        }
+
+        .container {
+            position: relative;
+            width: 500px; height: 500px;
+            background: url('https://i.imgur.com/G129ndd.png') no-repeat center/contain;
+        }
+
+        #screen-area {
+            position: absolute;
+            top: 46%; left: 50%; 
+            transform: translate(-50%, -50%);
+            width: 220px; height: 160px; 
+            display: flex; justify-content: center; align-items: center;
+            flex-direction: column;
+            user-select: none;
+            z-index: 9999; 
+            cursor: pointer;
+            pointer-events: auto;
+        }
+
+        #date-display { font-size: 0.9rem; color: #444; margin-bottom: 8px; }
+        #display { font-size: 3.2rem; color: #111; margin-bottom: 5px; }
+        #mode-label { font-size: 0.8rem; font-weight: bold; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div id="screen-area" onclick="handleSingleClick()" ondblclick="resetTimer()">
+            <div id="date-display">LOADING...</div>
+            <div id="display">25:00</div>
+            <div id="mode-label">READY</div>
+        </div>
+    </div>
+
+    <script>
+        let timer = null;
+        let isFocusMode = true;
+        let timeLeft = 25 * 60;
+        let isRunning = false;
+        let clickTimer = null;
+
+        function updateDate() {
+            const dateEl = document.getElementById('date-display');
+            if (!dateEl) return;
+            const now = new Date();
+            const year = now.getFullYear();
+            const month = String(now.getMonth() + 1).padStart(2, '0');
+            const date = String(now.getDate()).padStart(2, '0');
+            const dayNames = ['SUN', 'MON', 'TUE', 'WED', 'THU', 'FRI', 'SAT'];
+            dateEl.innerText = `${year}.${month}.${date} ${dayNames[now.getDay()]}`;
+        }
+
+        function updateDisplay() {
+            const displayEl = document.getElementById('display');
+            const modeEl = document.getElementById('mode-label');
+            if (!displayEl || !modeEl) return;
+
+            const mins = Math.floor(timeLeft / 60);
+            const secs = timeLeft % 60;
+            displayEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
+            
+            modeEl.innerText = isFocusMode ? "- FOCUS MODE -" : "- REST MODE -";
+            // ⭐️ FOCUS 모드일 때 색상을 따뜻한 갈색(#795548)으로 설정했습니다.
+            modeEl.style.color = isFocusMode ? "#795548" : "#388e3c"; 
+        }
+
+        function handleSingleClick() {
+            if (clickTimer) {
+                clearTimeout(clickTimer);
+                clickTimer = null;
+            } else {
+                clickTimer = setTimeout(() => {
+                    toggleTimer();
+                    clickTimer = null;
+                }, 250);
+            }
+        }
+
+        function toggleTimer() {
+            if (isRunning) {
+                clearInterval(timer);
+                timer = null;
+                isRunning = false;
+            } else {
+                isRunning = true;
+                timer = setInterval(() => {
+                    if (timeLeft > 0) {
+                        timeLeft--;
+                        updateDisplay();
+                    } else {
+                        clearInterval(timer);
+                        isRunning = false;
+                        isFocusMode = !isFocusMode;
+                        timeLeft = isFocusMode ? 25 * 60 : 10 * 60;
+                        updateDisplay();
+                        alert(isFocusMode ? "집중 시간!" : "휴식 시간!");
+                    }
+                }, 1000);
+            }
+        }
+
+        function resetTimer() {
+            clearInterval(timer);
+            timer = null;
+            isRunning = false;
+            isFocusMode = true;
+            timeLeft = 25 * 60;
+            updateDisplay();
+        }
+
+        window.onload = function() {
+            updateDate();
+            updateDisplay();
+            setInterval(updateDate, 60000);
+        };
+    </script>
+</body>
+</html>
