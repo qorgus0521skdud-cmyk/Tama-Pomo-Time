@@ -85,10 +85,10 @@
         let timeLeft = 25 * 60;
         let isRunning = false;
 
-        // 🍄 마리오 점프 효과음 링크 (뾰용!)
-        const jumpSound = new Audio('https://www.myinstants.com/media/sounds/super-mario-jump.mp3');
-        // 🏁 집중 완료 시 깃발 내리는 소리 혹은 코인 소리 (따라라라~)
-        const finishSound = new Audio('https://www.myinstants.com/media/sounds/mario-coin.mp3');
+        // 🍄 마리오 점프 소리 (새로운 소스 + 캐시 방지 v=1 추가)
+        const jumpSound = new Audio('https://files.catbox.moe/978vun.mp3?v=1');
+        // 💰 마리오 코인 소리
+        const finishSound = new Audio('https://files.catbox.moe/8yox0v.mp3?v=1');
 
         function updateDate() {
             const dateEl = document.getElementById('date-display');
@@ -105,9 +105,7 @@
             const modeEl = document.getElementById('mode-label');
             const mins = Math.floor(timeLeft / 60);
             const secs = timeLeft % 60;
-            
             if (displayEl) displayEl.innerText = `${mins.toString().padStart(2, '0')}:${secs.toString().padStart(2, '0')}`;
-            
             if (modeEl) {
                 if (!isRunning && timeLeft === 25*60) {
                     modeEl.innerText = "- READY -";
@@ -125,9 +123,9 @@
                 timer = null; 
                 isRunning = false; 
             } else {
-                // 🍄 시작할 때 "뾰용!"
+                // 🍄 시작할 때 소리 재생 시도
                 jumpSound.currentTime = 0;
-                jumpSound.play().catch(e => console.log("Click required")); 
+                jumpSound.play().catch(e => console.log("Click interaction required"));
                 
                 isRunning = true;
                 timer = setInterval(() => {
@@ -135,21 +133,24 @@
                         timeLeft--; 
                         updateDisplay(); 
                     } else { 
-                        // 💰 끝날 때 "코인!" 소리
+                        // 🏁 종료 시 소리 재생
+                        finishSound.currentTime = 0;
                         finishSound.play(); 
                         clearInterval(timer); 
                         isRunning = false; 
                         
-                        if (isFocusMode) {
-                            alert("집중 완료! 코인을 획득했습니다! 🪙");
-                            isFocusMode = false;
-                            timeLeft = 5 * 60; 
-                        } else {
-                            alert("휴식 끝! 다시 모험을 떠나볼까요? 🍄");
-                            isFocusMode = true;
-                            timeLeft = 25 * 60; 
-                        }
-                        updateDisplay(); 
+                        setTimeout(() => {
+                            if (isFocusMode) {
+                                alert("집중 완료! 코인을 획득했습니다! 🪙");
+                                isFocusMode = false;
+                                timeLeft = 5 * 60; 
+                            } else {
+                                alert("휴식 끝! 다시 모험을 떠나볼까요? 🍄");
+                                isFocusMode = true;
+                                timeLeft = 25 * 60; 
+                            }
+                            updateDisplay();
+                        }, 100);
                     }
                 }, 1000);
             }
